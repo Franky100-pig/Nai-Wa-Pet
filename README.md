@@ -51,18 +51,20 @@ npm start
 - **去睡觉**：闭眼、飘 Zzz、呼吸变慢。
 - **大小**：小 / 中 / 大，位置和设置会存到 `~/Library/Application Support/naiwa-pet/pet-settings.json`。
 
-## 声音：换成真的奶龙笑
+## 声音
 
-内置的笑声是 WebAudio 现场合成的「哈哈」，能听但肯定不如原声。想要真的：
+内置的音效（笑、点一下、落地、喝奶茶）都是 WebAudio 现场合成的，能听但不像原声。
+四个都能换成你自己的音频，**不用改代码也不用重新打包**：
 
-1. 右键 → **换笑声…** → 自动打开 `assets/sounds/`
-2. 把你下载的音频丢进去，命名成 `laugh.mp3`（也认 `.m4a / .wav / .ogg / .aac`）
-3. 再右键一次（不用重启），菜单会顺手重扫一遍，笑的时候就用你的文件了
+1. 右键桌宠 →「换声音…」，打开音频文件夹
+2. 丢一个 `laugh.mp3` 进去（还可以有 `poke` / `land` / `feed`）
+3. 再开一次菜单，就换上了
 
-哪里能下：爱给网上有 `奶龙大笑`（10s）和 `【抽象】奶龙捧腹大笑-原版+变声`（43s），
-<https://www.aigei.com/sound/class/nai_long_d/>。或者从你有版权的视频里扣一段。
+完整教程（哪找音频、怎么转格式、多长合适、不生效怎么查）见
+**[docs/CUSTOM-SOUND.md](docs/CUSTOM-SOUND.md)**。
 
-> 这个文件夹里的音频版权不属于你，只在自己电脑上用，别跟着代码一起发布。
+> 音频放的是 `~/Library/Application Support/奶蛙桌宠/sounds/`，不在 `.app` 里面 ——
+> 往签名过的 app 包里塞文件会让签名失效，在 Apple Silicon 上可能直接启动不了。
 
 ## 实现要点
 

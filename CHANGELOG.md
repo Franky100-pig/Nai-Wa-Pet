@@ -1,5 +1,15 @@
 # 更新记录
 
+## v0.6.0 — 四个声音槽，以及修掉 v0.5.0 的音效 bug
+
+- 笑一个 / 点一下 / 落地 / 喝奶茶，四个槽位都能换成自己的音频
+- 音频目录改到 `~/Library/Application Support/奶蛙桌宠/sounds/`。往签名过的 `.app`
+  里写文件会让签名失效，Apple Silicon 上可能直接起不来
+- 菜单「换声音…」直接打开那个目录；首次运行自动建目录并放一份说明
+- **修**：v0.5.0 里 `sfxPoke` / `sfxLand` / `sfxSlurp` 三个函数在重写音频段时被误删，
+  点击、落地、喂奶茶都会抛 `is not defined` —— 表现是点一下没有爱心滑出，
+  喂奶茶只有杯子动画、饱腹感不涨。v0.5.0 的 DMG 有这个问题，请用 v0.6.0
+
 ## v0.5.0 — 打成能双击的 App
 
 - `tools/pack.sh`：手拼 `Electron.app` → `NaiwaPet.app`，不依赖 electron-builder
