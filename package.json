@@ -1,0 +1,13 @@
+{
+  "name": "naiwa-pet",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A desktop pet of the Naiwa / Nailong-frog meme, built with Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "44.9.1"
+  }
+}
