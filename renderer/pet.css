@@ -39,6 +39,10 @@ html, body {
 #rig { transform-origin: 100px 130px; }
 #rig.face-left { transform: scaleX(-1); }
 
+/* 朝左走时整体镜像，但校徽的字不能反着写 */
+#hfi { transform-box: view-box; transform-origin: 131px 145px; transition: transform 0.2s; }
+#rig.face-left #hfi { transform: scaleX(-1); }
+
 /* 呼吸 */
 @keyframes breathe {
   0%, 100% { transform: scale(1, 1); }

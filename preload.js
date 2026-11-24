@@ -7,5 +7,6 @@ contextBridge.exposeInMainWorld('petAPI', {
   menu: (open) => ipcRenderer.send('pet:menu', open),
   cmd: (type, value) => ipcRenderer.send('pet:cmd', { type, value }),
   onSync: (fn) => ipcRenderer.on('pet:sync', (_e, d) => fn(d)),
-  onAction: (fn) => ipcRenderer.on('pet:action', (_e, d) => fn(d))
+  onAction: (fn) => ipcRenderer.on('pet:action', (_e, d) => fn(d)),
+  onMenuClose: (fn) => ipcRenderer.on('pet:menu-close', () => fn())
 });

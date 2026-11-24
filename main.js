@@ -74,10 +74,10 @@ const workArea = () => displayOf().workArea;
 const groundTop = () => workArea().y + workArea().height - winH - GROUND_GAP;
 
 // 命中区域：一个包住身体的椭圆（占窗口的比例，随 scale 自动缩放）
-function hitTest(p) {
+function hitTest(p, k = 1) {
   const cx = pos.x + winW * 0.5;
   const cy = pos.y + winH * 0.56;
-  const pad = ignoring ? 1.0 : 1.06;  // 已经在里面时放宽一点，避免边缘抖动
+  const pad = (ignoring ? 1.0 : 1.06) * k;  // 已经在里面时放宽一点，避免边缘抖动
   const rx = winW * 0.34 * pad;
   const ry = winH * 0.42 * pad;
   const dx = (p.x - cx) / rx;
@@ -137,7 +137,13 @@ function tick() {
   const p = screen.getCursorScreenPoint();
 
   // 1. 透明区域穿透 / 命中时接管鼠标
-  if (!menuOpen && !dragging) {
+  //    菜单开着的时候整个窗口都接管，否则菜单按钮那块会被判成"空白区"直接穿透下去
+  if (menuOpen) {
+    if (ignoring) {
+      win.setIgnoreMouseEvents(false);
+      ignoring = false;
+    }
+  } else if (!dragging) {
     const inside = hitTest(p);
     if (inside && ignoring) {
       win.setIgnoreMouseEvents(false);
@@ -148,10 +154,11 @@ function tick() {
     }
   }
 
-  // 2. 菜单开着时，光标移出窗口就关掉
+  // 2. 菜单开着时，光标真正离开窗口才关（留 12px 余量，别抖一下就没了）
   if (menuOpen) {
+    const m = 12;
     const inside =
-      p.x >= pos.x && p.x <= pos.x + winW && p.y >= pos.y && p.y <= pos.y + winH;
+      p.x >= pos.x - m && p.x <= pos.x + winW + m && p.y >= pos.y - m && p.y <= pos.y + winH + m;
     if (!inside) closeMenu();
   }
 
@@ -184,15 +191,20 @@ function tick() {
       sendAction('land', { impact: Math.min(1, impact / 1800) });
     }
   } else if (mode === 'walk') {
-    pos.x += facing * WALK_SPEED * scale * dt;
-    const a = workArea();
-    const left = a.x + 2;
-    const right = a.x + a.width - winW - 2;
-    if (pos.x <= left) { pos.x = left; facing = 1; sync(); }
-    if (pos.x >= right) { pos.x = right; facing = -1; sync(); }
-    walkTimer -= dt;
-    if (walkTimer <= 0) stopWalk();
-  } else if (mode === 'idle' && !sleepMode) {
+    // 光标一靠近就站住，否则它在走的时候你永远点不中
+    if (hitTest(p, 1.55)) {
+      stopWalk();
+    } else {
+      pos.x += facing * WALK_SPEED * scale * dt;
+      const a = workArea();
+      const left = a.x + 2;
+      const right = a.x + a.width - winW - 2;
+      if (pos.x <= left) { pos.x = left; facing = 1; sync(); }
+      if (pos.x >= right) { pos.x = right; facing = -1; sync(); }
+      walkTimer -= dt;
+      if (walkTimer <= 0) stopWalk();
+    }
+  } else if (mode === 'idle' && !sleepMode && !menuOpen) {
     idleWait -= dt * 1000;
     if (idleWait <= 0) {
       if (wanderOn) startWalk();
@@ -212,12 +224,14 @@ function openMenu() {
   menuOpen = true;
   press = null;
   dragging = null;
+  if (mode === 'walk') stopWalk();   // 开菜单时先站住，别一边走一边把菜单带走
   if (ignoring) { win.setIgnoreMouseEvents(false); ignoring = false; }
 }
 
 function closeMenu() {
   if (!menuOpen) return;
   menuOpen = false;
+  if (win && !win.isDestroyed()) win.webContents.send('pet:menu-close');
   sync();
 }
 
@@ -353,7 +367,10 @@ ipcMain.on('pet:cmd', (_e, { type, value }) => {
       pos.x = Math.round(b.x + (b.width - winW) / 2);
       pos.y = Math.round(b.y + oldH - winH);
       if (mode === 'idle' || mode === 'sleep' || mode === 'walk') pos.y = groundTop();
+      // resizable:false 的窗口在 macOS 上会吞掉 setBounds 的尺寸变化，临时放开
+      win.setResizable(true);
       win.setBounds({ x: Math.round(pos.x), y: Math.round(pos.y), width: winW, height: winH });
+      win.setResizable(false);
       sync();
       saveCfg();
       break;

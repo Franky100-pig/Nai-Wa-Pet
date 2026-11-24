@@ -295,6 +295,12 @@ api.onAction(({ type, impact }) => {
   else if (type === 'land') doLand(impact ?? 0.5);
 });
 
+// 主进程判定光标离开窗口 → 收菜单
+api.onMenuClose(() => {
+  if (!menuOpen) return;
+  menuOpen = false;
+  menu.classList.add('hidden');
+});
 
 // ── 启动 ───────────────────────────────────────────────────────
 (async function boot() {
