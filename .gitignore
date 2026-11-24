@@ -3,3 +3,7 @@ dist/
 .DS_Store
 *.log
 assets/AppIcon.iconset/
+
+# 用户自备的音频不进仓库（版权不属于这个项目）
+assets/sounds/*
+!assets/sounds/README.txt

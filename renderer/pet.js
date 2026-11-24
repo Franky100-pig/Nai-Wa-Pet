@@ -95,9 +95,10 @@ setInterval(() => {
 }, 30000);
 
 // ── 音效 ───────────────────────────────────────────────────────
-// 优先用 assets/sounds/laugh.* 里的真实笑声；找不到就用原本那段合成音。
+// 优先用 assets/sounds/<名字>.* 里的真实音频，找不到才回落到合成音。
+// 名字：laugh 笑一个 / poke 点一下 / land 落地 / feed 喝奶茶
 let actx = null;
-let laughSrc = null;   // 用户自备笑声文件路径（由主进程扫描后同步过来）
+let soundFiles = {};   // 主进程扫盘后同步过来的 { 名字: file://... }
 let laughDur = 0;
 
 function probeDuration(url) {
@@ -120,7 +121,18 @@ function audio() {
   return actx;
 }
 
-/** 魔性笑声：一串快速下行的"哈"，锯齿波 + 带通共振腔 */
+/** 有自定义音频就放它；静音时也算已处理，免得回落到合成音 */
+function playFile(key) {
+  if (!soundOn) return true;
+  const url = soundFiles[key];
+  if (!url) return false;
+  const a = new Audio(url);
+  a.volume = 0.95;
+  a.play().catch(() => { /* 还没交互过就算了 */ });
+  return true;
+}
+
+/** 兜底笑声：锯齿波 + 带通共振腔，一串快速下行的「哈」 */
 function synthLaugh() {
   const ctx = audio();
   if (!ctx) return;
@@ -154,13 +166,73 @@ function synthLaugh() {
 
 function sfxLaugh() {
   if (!soundOn) return;
-  if (laughSrc) {
-    const a = new Audio(laughSrc);
-    a.volume = 0.95;
-    a.play().catch(() => { /* 还没交互过就算了 */ });
-    return;
-  }
+  if (playFile('laugh')) return;
   synthLaugh();
+}
+
+/** 点一下的「啾」 */
+function sfxPoke() {
+  if (playFile('poke')) return;
+  const ctx = audio();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(620, t);
+  osc.frequency.exponentialRampToValueAtTime(1180, t + 0.09);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.09, t + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.18);
+}
+
+/** 落地的「咚」 */
+function sfxLand(strength = 0.5) {
+  if (playFile('land')) return;
+  const ctx = audio();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = 'sine';
+  const f = 120 + 90 * (1 - strength);
+  osc.frequency.setValueAtTime(f, t);
+  osc.frequency.exponentialRampToValueAtTime(f * 0.45, t + 0.18);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(0.06 + 0.09 * strength, t + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.26);
+}
+
+/** 喝奶茶的吸溜 */
+function sfxSlurp() {
+  if (playFile('feed')) return;
+  const ctx = audio();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  for (let i = 0; i < 3; i++) {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    const f = ctx.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 900 + i * 220;
+    f.Q.value = 6;
+    osc.type = 'sawtooth';
+    const at = t + i * 0.17;
+    osc.frequency.setValueAtTime(240, at);
+    osc.frequency.exponentialRampToValueAtTime(420, at + 0.12);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(0.05, at + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.14);
+    osc.connect(f).connect(g).connect(ctx.destination);
+    osc.start(at);
+    osc.stop(at + 0.16);
+  }
 }
 
 // ── 动作 ───────────────────────────────────────────────────────
@@ -309,7 +381,10 @@ api.onSync((d) => {
   soundOn = d.sound;
   wanderOn = d.wander;
   if (Math.abs((d.scale || 1) - currentScale) > 0.01) currentScale = d.scale;
-  if ((d.laugh || null) !== laughSrc) { laughSrc = d.laugh || null; probeDuration(laughSrc); }
+  if (JSON.stringify(d.sounds || {}) !== JSON.stringify(soundFiles)) {
+    soundFiles = d.sounds || {};
+    probeDuration(soundFiles.laugh);
+  }
   render();
   renderMenuState();
 });
@@ -330,8 +405,8 @@ api.onMenuClose(() => {
 // ── 启动 ───────────────────────────────────────────────────────
 (async function boot() {
   const init = await api.ready();
-  laughSrc = init.laugh || null;
-  probeDuration(laughSrc);
+  soundFiles = init.sounds || {};
+  probeDuration(soundFiles.laugh);
   baseMode = init.mode || 'idle';
   facing = init.facing || 1;
   soundOn = init.sound !== false;

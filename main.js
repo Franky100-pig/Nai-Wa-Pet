@@ -32,18 +32,43 @@ let menuOpen = false;
 let wanderOn = true;
 let sleepMode = false;
 
-let laughUrl = null;
-const LAUGH_EXTS = ['mp3', 'm4a', 'wav', 'ogg', 'aac'];
+let sounds = {};
+const SOUND_EXTS = ['mp3', 'm4a', 'wav', 'ogg', 'aac'];
+const SOUND_KEYS = ['laugh', 'poke', 'land', 'feed'];
 
-// 用户把 laugh.mp3 丢进 assets/sounds 就能替换掉合成音
-function findLaugh() {
-  for (const ext of LAUGH_EXTS) {
-    const p = path.join(__dirname, 'assets', 'sounds', `laugh.${ext}`);
-    try {
-      if (fs.statSync(p).size > 1024) return 'file://' + encodeURI(p);
-    } catch { /* 没有这个文件 */ }
+// 用户的音频放这儿（不在 .app 包里面，改包会破坏签名）
+const userSoundsDir = () => path.join(app.getPath('userData'), 'sounds');
+
+// 每次扫两处：用户目录优先，其次仓库里的 assets/sounds（方便开发时直接丢）
+function findSounds() {
+  const dirs = [userSoundsDir(), path.join(__dirname, 'assets', 'sounds')];
+  const out = {};
+  for (const key of SOUND_KEYS) {
+    search: for (const dir of dirs) {
+      for (const ext of SOUND_EXTS) {
+        const p = path.join(dir, `${key}.${ext}`);
+        try {
+          if (fs.statSync(p).size > 1024) {
+            out[key] = 'file://' + encodeURI(p);
+            break search;
+          }
+        } catch { /* 没有这个文件 */ }
+      }
+    }
   }
-  return null;
+  return out;
+}
+
+// 首次运行时把说明文件和空目录准备好
+function ensureSoundsDir() {
+  try {
+    const dir = userSoundsDir();
+    fs.mkdirSync(dir, { recursive: true });
+    const guide = path.join(dir, '说明.txt');
+    if (!fs.existsSync(guide)) {
+      fs.copyFileSync(path.join(__dirname, 'assets', 'sounds', 'README.txt'), guide);
+    }
+  } catch { /* 建不了就算了，功能不受影响 */ }
 }
 
 let idleWait = 1400;
@@ -109,7 +134,7 @@ function sync() {
     sound: cfg.sound !== false,
     wander: wanderOn,
     sleeping: sleepMode,
-    laugh: laughUrl
+    sounds
   });
 }
 
@@ -237,8 +262,8 @@ function tick() {
 // ── 菜单 ────────────────────────────────────────────────────────
 function openMenu() {
   menuOpen = true;
-  const found = findLaugh();
-  if (found !== laughUrl) { laughUrl = found; sync(); }
+  const found = findSounds();
+  if (JSON.stringify(found) !== JSON.stringify(sounds)) { sounds = found; sync(); }
   press = null;
   dragging = null;
   if (mode === 'walk') stopWalk();   // 开菜单时先站住，别一边走一边把菜单带走
@@ -317,7 +342,7 @@ ipcMain.handle('pet:ready', () => ({
   sound: cfg.sound !== false,
   wander: wanderOn,
   sleeping: sleepMode,
-  laugh: laughUrl
+  sounds
 }));
 
 ipcMain.on('pet:press', (_e, p) => {
@@ -395,7 +420,7 @@ ipcMain.on('pet:cmd', (_e, { type, value }) => {
     }
     case 'opensounds':
       closeMenu();
-      shell.openPath(path.join(__dirname, 'assets', 'sounds'));
+      shell.openPath(userSoundsDir());
       break;
     case 'quit':
       app.quit();
@@ -408,7 +433,8 @@ ipcMain.on('pet:cmd', (_e, { type, value }) => {
 // ── 生命周期 ────────────────────────────────────────────────────
 app.whenReady().then(() => {
   loadCfg();
-  laughUrl = findLaugh();
+  ensureSoundsDir();
+  sounds = findSounds();
   createWindow();
 
   app.on('activate', () => {
