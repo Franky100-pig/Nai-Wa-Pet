@@ -1,0 +1,194 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;width:1024px;height:1024px;background:transparent;overflow:hidden}
+#mouthLaugh,#mouthSmall,#eyesHappy{display:none}
+</style></head><body>
+<svg id="svg" xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 200 260" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="skin" cx="30%" cy="16%" r="92%">
+        <stop offset="0%" stop-color="#FFE9A6" />
+        <stop offset="26%" stop-color="#FDD05C" />
+        <stop offset="58%" stop-color="#F7BE3E" />
+        <stop offset="82%" stop-color="#EFA92A" />
+        <stop offset="100%" stop-color="#D9861A" />
+      </radialGradient>
+
+      <linearGradient id="shade" x1="0.15" y1="0.2" x2="0.5" y2="1">
+        <stop offset="46%" stop-color="#7A3F00" stop-opacity="0" />
+        <stop offset="78%" stop-color="#7A3F00" stop-opacity=".12" />
+        <stop offset="100%" stop-color="#7A3F00" stop-opacity=".3" />
+      </linearGradient>
+
+      <radialGradient id="bellyGrad" cx="50%" cy="38%" r="62%">
+        <stop offset="0%" stop-color="#F8EBD5" />
+        <stop offset="72%" stop-color="#F0DCC0" />
+        <stop offset="100%" stop-color="#E3C69E" />
+      </radialGradient>
+
+      <linearGradient id="armGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#F3B93C" />
+        <stop offset="55%" stop-color="#E9A72C" />
+        <stop offset="100%" stop-color="#C6A868" />
+      </linearGradient>
+
+      <linearGradient id="mouthG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#3B120C" />
+        <stop offset="100%" stop-color="#7A2C24" />
+      </linearGradient>
+
+      <radialGradient id="shirtGrad" cx="34%" cy="16%" r="94%">
+        <stop offset="0%" stop-color="#3E577A" />
+        <stop offset="42%" stop-color="#31486A" />
+        <stop offset="76%" stop-color="#26374F" />
+        <stop offset="100%" stop-color="#1A2637" />
+      </radialGradient>
+
+      <linearGradient id="shirtShade" x1="0.2" y1="0.05" x2="0.55" y2="1">
+        <stop offset="42%" stop-color="#000000" stop-opacity="0" />
+        <stop offset="100%" stop-color="#000000" stop-opacity=".32" />
+      </linearGradient>
+
+      <radialGradient id="shG">
+        <stop offset="0%" stop-color="#000" stop-opacity=".26" />
+        <stop offset="100%" stop-color="#000" stop-opacity="0" />
+      </radialGradient>
+
+      <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="2.2" />
+      </filter>
+      <filter id="softer" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="6" />
+      </filter>
+
+      <clipPath id="bodyClip">
+        <path d="M100 26 C124 26 134 40 135 58 C136 78 143 92 150 108
+                 C160 132 166 160 165 188 C164 212 152 228 133 232
+                 C119 236 108 235 100 235 C92 235 81 236 67 232
+                 C48 228 36 212 35 188 C34 160 40 132 50 108
+                 C57 92 64 78 65 58 C66 40 76 26 100 26 Z" />
+      </clipPath>
+
+      <clipPath id="armClip">
+        <rect x="0" y="126" width="200" height="140" />
+      </clipPath>
+
+      <clipPath id="mouthClip">
+        <path d="M70 74 Q100 67 130 74 Q127 100 100 100 Q73 100 70 74 Z" />
+      </clipPath>
+    </defs>
+
+    <ellipse id="shadow" cx="100" cy="250" rx="62" ry="9" fill="url(#shG)" />
+
+    <g id="rig">
+      <g id="squash">
+        <g id="bodygroup">
+
+          <!-- 腿（粗短）+ 橄榄色脚掌 -->
+          <g id="legs">
+            <path d="M76 214 L72 243" stroke="#F0AE2E" stroke-width="24" stroke-linecap="round" fill="none" />
+            <path d="M124 214 L128 243" stroke="#F0AE2E" stroke-width="24" stroke-linecap="round" fill="none" />
+            <ellipse cx="73" cy="247" rx="15.5" ry="7.8" fill="#B29C5E" />
+            <ellipse cx="127" cy="247" rx="15.5" ry="7.8" fill="#B29C5E" />
+          </g>
+
+          <!-- 身体（梨形，头身一体，没有脖子） -->
+          <path id="body" d="M100 26 C124 26 134 40 135 58 C136 78 143 92 150 108
+                 C160 132 166 160 165 188 C164 212 152 228 133 232
+                 C119 236 108 235 100 235 C92 235 81 236 67 232
+                 C48 228 36 212 35 188 C34 160 40 132 50 108
+                 C57 92 64 78 65 58 C66 40 76 26 100 26 Z"
+                fill="url(#skin)" />
+
+          <!-- 黏土质感：内阴影 + 高光（全部裁进身体轮廓） -->
+          <g clip-path="url(#bodyClip)">
+            <rect x="0" y="0" width="200" height="260" fill="url(#shade)" />
+            <ellipse cx="74" cy="58" rx="20" ry="15" fill="#FFFFFF" opacity=".4" filter="url(#softer)" />
+            <ellipse cx="58" cy="152" rx="12" ry="34" fill="#FFFFFF" opacity=".2" filter="url(#softer)" />
+            <ellipse cx="148" cy="196" rx="16" ry="26" fill="#8A4A00" opacity=".15" filter="url(#softer)" />
+          </g>
+
+          <!-- 校服 polo：深蓝，跟身体轮廓严丝合缝 -->
+          <g clip-path="url(#bodyClip)">
+            <path d="M0 112 Q42 104 72 101 Q100 99 128 101 Q158 104 200 112 L200 262 L0 262 Z" fill="url(#shirtGrad)" />
+            <path d="M0 112 Q42 104 72 101 Q100 99 128 101 Q158 104 200 112 L200 262 L0 262 Z" fill="url(#shirtShade)" />
+          </g>
+
+          <!-- polo 领子 -->
+          <path d="M76 99 Q100 94 124 99 L121 107 Q100 102 79 107 Z" fill="#3D5474" />
+          <path d="M79 106 L97 120 L74 112 Z" fill="#47608A" stroke="#4C6890" stroke-width="0.8" stroke-linejoin="round" />
+          <path d="M121 106 L103 120 L126 112 Z" fill="#47608A" stroke="#4C6890" stroke-width="0.8" stroke-linejoin="round" />
+
+          <!-- 门襟 + 两颗扣子 -->
+          <rect x="96.7" y="119" width="6.6" height="48" rx="1.4" fill="#2B3D56" />
+          <line x1="100" y1="121" x2="100" y2="166" stroke="#1F2C42" stroke-width="1" />
+          <circle cx="100" cy="131" r="2" fill="#E8E4DA" />
+          <circle cx="100" cy="151" r="2" fill="#E8E4DA" />
+
+          <!-- HFI 刺绣（穿的人左胸 = 画面右侧） -->
+          <text id="hfi" x="131" y="148" font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
+                font-size="10" font-weight="700" letter-spacing="0.2" fill="#EEF1F5"
+                text-anchor="middle">HFI</text>
+
+          <!-- 手臂：短袖遮住上臂，前臂露黄，末端橄榄色手掌 -->
+          <g id="armL">
+            <path d="M60 110 C48 130 43 152 46 176" clip-path="url(#armClip)"
+                  stroke="url(#armGrad)" stroke-width="17" stroke-linecap="round" fill="none" />
+            <path d="M60 110 C48 130 43 152 46 176" pathLength="100"
+                  stroke="url(#shirtGrad)" stroke-width="19" stroke-linecap="butt"
+                  stroke-dasharray="40 200" fill="none" />
+            <ellipse cx="46" cy="184" rx="10.5" ry="11.5" fill="#B29C5E" />
+          </g>
+          <g id="armR">
+            <path d="M140 110 C152 130 157 152 154 176" clip-path="url(#armClip)"
+                  stroke="url(#armGrad)" stroke-width="17" stroke-linecap="round" fill="none" />
+            <path d="M140 110 C152 130 157 152 154 176" pathLength="100"
+                  stroke="url(#shirtGrad)" stroke-width="19" stroke-linecap="butt"
+                  stroke-dasharray="40 200" fill="none" />
+            <ellipse cx="154" cy="184" rx="10.5" ry="11.5" fill="#B29C5E" />
+          </g>
+
+          <!-- 眼睛：小、分得很开、贴着头顶两侧，绿眼珠 + 黑瞳 -->
+          <g id="eyesOpen">
+            <g class="eye" style="transform-origin:80px 54px">
+              <circle cx="80" cy="54" r="10.5" fill="#9CC96E" />
+              <circle cx="80" cy="54.6" r="9" fill="#88BB5C" opacity=".5" />
+              <circle class="pupil" cx="80.6" cy="55" r="5.9" fill="#1E180F" />
+              <circle cx="77.6" cy="51.4" r="1.7" fill="#FFFFFF" opacity=".92" />
+            </g>
+            <g class="eye" style="transform-origin:120px 54px">
+              <circle cx="120" cy="54" r="10.5" fill="#9CC96E" />
+              <circle cx="120" cy="54.6" r="9" fill="#88BB5C" opacity=".5" />
+              <circle class="pupil" cx="119.4" cy="55" r="5.9" fill="#1E180F" />
+              <circle cx="117.6" cy="51.4" r="1.7" fill="#FFFFFF" opacity=".92" />
+            </g>
+          </g>
+
+          <!-- 眼睛：笑成两条弧 -->
+          <g id="eyesHappy" fill="none" stroke="#2B2114" stroke-width="4.4" stroke-linecap="round">
+            <path d="M70 56 Q80 45 90 56" />
+            <path d="M110 56 Q120 45 130 56" />
+          </g>
+
+          <!-- 嘴：常态（一条薄薄的横线） -->
+          <g id="mouthIdle">
+            <path d="M91 80 Q100 81.2 109 80" fill="none" stroke="#6B4620" stroke-width="2.5" stroke-linecap="round" />
+          </g>
+
+          <!-- 嘴：大笑（整个下半张脸张开） -->
+          <g id="mouthLaugh">
+            <path d="M70 74 Q100 67 130 74 Q127 100 100 100 Q73 100 70 74 Z" fill="url(#mouthG)" />
+            <g clip-path="url(#mouthClip)">
+              <path d="M68 72 Q100 66 132 72 L132 82 Q100 76 68 82 Z" fill="#FDF3E4" opacity=".95" />
+              <ellipse cx="100" cy="96" rx="23" ry="10" fill="#C4655F" />
+            </g>
+          </g>
+
+          <!-- 嘴：小口（吃东西） -->
+          <g id="mouthSmall">
+            <ellipse cx="100" cy="84" rx="8.5" ry="10" fill="#5B2418" />
+            <ellipse cx="100" cy="92" rx="8" ry="5" fill="#C4655F" />
+          </g>
+        </g>
+      </g>
+    </g>
+  </svg>
+</body></html>

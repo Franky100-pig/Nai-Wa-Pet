@@ -1,13 +1,16 @@
 {
   "name": "naiwa-pet",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "private": true,
-  "description": "A desktop pet of the Naiwa / Nailong-frog meme, built with Electron",
+  "description": "奶蛙桌宠 — Electron desktop pet with a school-uniformed Naiwa",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "pack": "bash tools/pack.sh",
+    "icon": "electron tools/make-icon.js --no-sandbox"
   },
   "devDependencies": {
     "electron": "44.9.1"
-  }
+  },
+  "author": "Franky100-pig"
 }
