@@ -1,6 +1,6 @@
 'use strict';
 
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 
@@ -31,6 +31,20 @@ let ignoring = false;
 let menuOpen = false;
 let wanderOn = true;
 let sleepMode = false;
+
+let laughUrl = null;
+const LAUGH_EXTS = ['mp3', 'm4a', 'wav', 'ogg', 'aac'];
+
+// 用户把 laugh.mp3 丢进 assets/sounds 就能替换掉合成音
+function findLaugh() {
+  for (const ext of LAUGH_EXTS) {
+    const p = path.join(__dirname, 'assets', 'sounds', `laugh.${ext}`);
+    try {
+      if (fs.statSync(p).size > 1024) return 'file://' + encodeURI(p);
+    } catch { /* 没有这个文件 */ }
+  }
+  return null;
+}
 
 let idleWait = 1400;
 let walkTimer = 0;
@@ -94,7 +108,8 @@ function sync() {
     scale,
     sound: cfg.sound !== false,
     wander: wanderOn,
-    sleeping: sleepMode
+    sleeping: sleepMode,
+    laugh: laughUrl
   });
 }
 
@@ -222,6 +237,8 @@ function tick() {
 // ── 菜单 ────────────────────────────────────────────────────────
 function openMenu() {
   menuOpen = true;
+  const found = findLaugh();
+  if (found !== laughUrl) { laughUrl = found; sync(); }
   press = null;
   dragging = null;
   if (mode === 'walk') stopWalk();   // 开菜单时先站住，别一边走一边把菜单带走
@@ -299,7 +316,8 @@ ipcMain.handle('pet:ready', () => ({
   scale,
   sound: cfg.sound !== false,
   wander: wanderOn,
-  sleeping: sleepMode
+  sleeping: sleepMode,
+  laugh: laughUrl
 }));
 
 ipcMain.on('pet:press', (_e, p) => {
@@ -375,6 +393,10 @@ ipcMain.on('pet:cmd', (_e, { type, value }) => {
       saveCfg();
       break;
     }
+    case 'opensounds':
+      closeMenu();
+      shell.openPath(path.join(__dirname, 'assets', 'sounds'));
+      break;
     case 'quit':
       app.quit();
       break;
@@ -386,6 +408,7 @@ ipcMain.on('pet:cmd', (_e, { type, value }) => {
 // ── 生命周期 ────────────────────────────────────────────────────
 app.whenReady().then(() => {
   loadCfg();
+  laughUrl = findLaugh();
   createWindow();
 
   app.on('activate', () => {

@@ -97,6 +97,19 @@ setInterval(() => {
 // ── 音效 ───────────────────────────────────────────────────────
 // 优先用 assets/sounds/laugh.* 里的真实笑声；找不到就用原本那段合成音。
 let actx = null;
+let laughSrc = null;   // 用户自备笑声文件路径（由主进程扫描后同步过来）
+let laughDur = 0;
+
+function probeDuration(url) {
+  if (!url) { laughDur = 0; return; }
+  try {
+    const probe = new Audio(url);
+    probe.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(probe.duration)) laughDur = probe.duration * 1000;
+    });
+  } catch { /* 忽略 */ }
+}
+
 function audio() {
   if (!soundOn) return null;
   if (!actx) {
@@ -141,13 +154,20 @@ function synthLaugh() {
 
 function sfxLaugh() {
   if (!soundOn) return;
+  if (laughSrc) {
+    const a = new Audio(laughSrc);
+    a.volume = 0.95;
+    a.play().catch(() => { /* 还没交互过就算了 */ });
+    return;
+  }
   synthLaugh();
 }
 
 // ── 动作 ───────────────────────────────────────────────────────
 function doLaugh() {
   // 有真笑声就按它的长度演，没有就演 2.4 秒
-  startAction('laugh', 2400);
+  const ms = Math.min(7000, Math.max(1400, laughDur || 2400));
+  startAction('laugh', ms);
   sfxLaugh();
   stats.mood = clamp(stats.mood + 4, 0, 100);
   render();
@@ -266,6 +286,10 @@ menu.addEventListener('click', (e) => {
       api.cmd('sound');
       renderMenuState();
       break;
+    case 'opensounds':
+      api.cmd('opensounds');
+      toggleMenu(false);
+      break;
     case 'scale':
       currentScale = Number(value);
       api.cmd('scale', currentScale);
@@ -285,6 +309,7 @@ api.onSync((d) => {
   soundOn = d.sound;
   wanderOn = d.wander;
   if (Math.abs((d.scale || 1) - currentScale) > 0.01) currentScale = d.scale;
+  if ((d.laugh || null) !== laughSrc) { laughSrc = d.laugh || null; probeDuration(laughSrc); }
   render();
   renderMenuState();
 });
@@ -305,6 +330,8 @@ api.onMenuClose(() => {
 // ── 启动 ───────────────────────────────────────────────────────
 (async function boot() {
   const init = await api.ready();
+  laughSrc = init.laugh || null;
+  probeDuration(laughSrc);
   baseMode = init.mode || 'idle';
   facing = init.facing || 1;
   soundOn = init.sound !== false;
