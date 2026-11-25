@@ -1,16 +1,19 @@
 {
   "name": "naiwa-pet",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "description": "奶蛙桌宠 — Electron desktop pet with a school-uniformed Naiwa",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "pack": "bash tools/pack.sh",
-    "icon": "electron tools/make-icon.js --no-sandbox"
+    "icon": "electron tools/make-icon.js --no-sandbox",
+    "pack:win": "bash tools/pack-win.sh",
+    "ico": "python3 tools/make-ico.py"
   },
   "devDependencies": {
-    "electron": "44.9.1"
+    "electron": "44.9.1",
+    "resedit": "^3.1.1"
   },
   "author": "Franky100-pig"
 }
