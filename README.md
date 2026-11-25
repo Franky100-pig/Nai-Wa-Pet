@@ -8,28 +8,38 @@
 
 ## 跑起来
 
-**方式一：双击 App（推荐，不依赖终端）**
+支持 **macOS（Apple Silicon）** 和 **Windows 10/11 x64**。
 
-从 [Releases](../../releases) 下 `NaiwaPet-0.5.0-arm64.dmg`，打开拖进「应用程序」就行。
+> Intel Mac 没单独打包。想用的话 clone 下来 `npm install && npm start` 就能跑，
+> 或者 `npm run pack` 会按你机器架构打。
+
+### macOS
+
+从 [Releases](../../releases) 下 `NaiwaPet-0.7.0-arm64.dmg`，打开拖进「应用程序」就行。
 想开机自启：系统设置 → 通用 → 登录项 → 加号 → 选它。
 
-自己构建：
+### Windows
+
+从 [Releases](../../releases) 下 `NaiwaPet-0.7.0-win32-x64.zip`，解压到任意目录，
+双击里面的 `NaiwaPet.exe`。免安装，删文件夹就等于卸载。
+
+> 第一次运行 Windows 会弹「Windows 已保护你的电脑」——因为没买代码签名。
+> 点 **更多信息 → 仍要运行** 就行。这个包是我在 Mac 上交叉编的，
+> 如果你那边有异常，开个 issue 把控制台输出贴上来。
+
+它不会出现在任务栏和 Alt-Tab 里（故意的），**要退出就右键点它 →「退出」**。
+
+### 从源码跑
 
 ```bash
-npm run pack          # 生成 dist/NaiwaPet.app
-open dist/NaiwaPet.app
-```
-
-**方式二：开发模式**
-
-```bash
-npm start
+npm install
+npm start                 # 开发模式，两边都能跑
+npm run pack              # macOS：打 .app
+npm run pack:win          # Windows 免安装包（可以在 Mac 上交叉打）
 ```
 
 > 如果在受限沙箱里跑报 `sandbox initialization failed`，加 `--no-sandbox`；
-> 在自己的 Terminal.app 里直接跑不会有这个问题。
-
-改完代码想更新 App，重新 `npm run pack` 即可（会覆盖 `dist/NaiwaPet.app`）。
+> 在自己的终端里直接跑不会有这个问题。
 
 ## 版本
 

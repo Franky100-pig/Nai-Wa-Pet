@@ -27,8 +27,9 @@
 正常情况下点「换声音…」就自动打开了，不用背路径：
 
 ```
-~/Library/Application Support/奶蛙桌宠/sounds/      ← 从 DMG 装的
-~/Library/Application Support/naiwa-pet/sounds/     ← npm start 跑的
+macOS（从 DMG 装的）   ~/Library/Application Support/奶蛙桌宠/sounds/
+macOS（npm start）     ~/Library/Application Support/naiwa-pet/sounds/
+Windows                %APPDATA%\naiwa-pet\sounds\
 ```
 
 第一次运行会自动建目录，并在里面放一份 `说明.txt`。

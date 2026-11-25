@@ -1,5 +1,16 @@
 # 更新记录
 
+## v0.7.0 — Windows 适配
+
+- 平台分支：`screen-saver` 窗口层级、`setVisibleOnAllWorkspaces` 只在 macOS 调，
+  Windows 走普通 `setAlwaysOnTop(true)`（Windows 不认层级参数）
+- 穿透开关在 Windows 上带 `{ forward: true }`，macOS 保持裸调用
+- **修**：音频路径改用 `pathToFileURL()`。之前是 `'file://' + encodeURI(p)`，
+  在 Windows 上会拼成 `file://C:%5C...` 这种非法 URL，自定义声音直接失效
+- 菜单字体加 `Segoe UI` / `微软雅黑`，中文不再走奇怪的兜底字体
+- `npm run pack:win`：交叉打 Windows 免安装包（x64 zip）。顺手把 exe 图标和
+  「属性 → 详细信息」里的 Electron 换成奶蛙桌宠（`resedit` 直接改 PE 资源）
+
 ## v0.6.0 — 四个声音槽，以及修掉 v0.5.0 的音效 bug
 
 - 笑一个 / 点一下 / 落地 / 喝奶茶，四个槽位都能换成自己的音频
