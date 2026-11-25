@@ -3,6 +3,10 @@
 const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const { pathToFileURL } = require('node:url');
+
+const IS_MAC = process.platform === 'darwin';
+const IS_WIN = process.platform === 'win32';
 
 // ── 几何常量（逻辑值，实际会乘 scale）───────────────────────────────
 const BASE_W = 240;
@@ -49,7 +53,7 @@ function findSounds() {
         const p = path.join(dir, `${key}.${ext}`);
         try {
           if (fs.statSync(p).size > 1024) {
-            out[key] = 'file://' + encodeURI(p);
+            out[key] = pathToFileURL(p).href;
             break search;
           }
         } catch { /* 没有这个文件 */ }
@@ -124,6 +128,15 @@ function hitTest(p, k = 1) {
   return dx * dx + dy * dy <= 1;
 }
 
+// 穿透开关。Windows 必须带 forward:true，否则部分 DWM 配置下点了会卡住；
+// macOS 没有 forward 选项（会把 mousemove 也断掉），靠主进程轮询光标。
+function setIgnore(v) {
+  if (!win || win.isDestroyed()) return;
+  if (IS_WIN) win.setIgnoreMouseEvents(v, { forward: true });
+  else win.setIgnoreMouseEvents(v);
+  ignoring = v;
+}
+
 // ── 状态广播 ────────────────────────────────────────────────────
 function sync() {
   if (!win || win.isDestroyed()) return;
@@ -180,16 +193,16 @@ function tick() {
   //    菜单开着的时候整个窗口都接管，否则菜单按钮那块会被判成"空白区"直接穿透下去
   if (menuOpen) {
     if (ignoring) {
-      win.setIgnoreMouseEvents(false);
+      setIgnore(false);
       ignoring = false;
     }
   } else if (!dragging) {
     const inside = hitTest(p);
     if (inside && ignoring) {
-      win.setIgnoreMouseEvents(false);
+      setIgnore(false);
       ignoring = false;
     } else if (!inside && !ignoring) {
-      win.setIgnoreMouseEvents(true);
+      setIgnore(true);
       ignoring = true;
     }
   }
@@ -208,7 +221,7 @@ function tick() {
     if (moved > DRAG_THRESHOLD) {
       dragging = { ox: press.ox, oy: press.oy };
       press = null;
-      if (ignoring) { win.setIgnoreMouseEvents(false); ignoring = false; }
+      if (ignoring) { setIgnore(false); ignoring = false; }
       setMode('drag');
     }
   }
@@ -267,7 +280,7 @@ function openMenu() {
   press = null;
   dragging = null;
   if (mode === 'walk') stopWalk();   // 开菜单时先站住，别一边走一边把菜单带走
-  if (ignoring) { win.setIgnoreMouseEvents(false); ignoring = false; }
+  if (ignoring) { setIgnore(false); ignoring = false; }
 }
 
 function closeMenu() {
@@ -318,11 +331,17 @@ function createWindow() {
 
   win.once('ready-to-show', () => {
     win.showInactive();            // 不抢焦点地显示
-    win.setAlwaysOnTop(true, 'screen-saver');
-    try {
-      win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
-    } catch { /* 某些 macOS 版本不支持 */ }
-    win.setIgnoreMouseEvents(true);
+    if (IS_MAC) {
+      // 'screen-saver' 是 macOS 的窗口层级，能压过全屏 App
+      win.setAlwaysOnTop(true, 'screen-saver');
+      try {
+        win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
+      } catch { /* 某些 macOS 版本不支持 */ }
+    } else {
+      // Windows 忽略层级参数，普通置顶即可（全屏独占的游戏本来就盖不住）
+      win.setAlwaysOnTop(true);
+    }
+    setIgnore(true);
     ignoring = true;
     lastTick = Date.now();
     loop = setInterval(tick, TICK);
